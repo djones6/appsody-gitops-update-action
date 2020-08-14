@@ -10,11 +10,19 @@ inputs:
   gitops-repo-name:
     description: 'Name of GitOps repo'
     required: true
+  branch:
+    description: 'Branch of GitOps repo to Update'
+    required: true
+    default: 'master'
+  message:
+    description: 'Commit message to use when pushing updates'
+    required: true
+    default: "Update app-deploy.yaml for ${{ inputs.service-name }}"
 runs:
   using: "composite"
   steps:
     - name: "Clone GitOps repo"
-      run: git clone --depth 1 https://github.com/${{ inputs.github-org }}/${{ inputs.gitops-repo-name }}.git ./gitops
+      run: git clone --depth 1 --branch ${{ inputs.branch }} https://github.com/${{ inputs.github-org }}/${{ inputs.gitops-repo-name }}.git ./gitops
       shell: bash
     - name: "Replace app-deploy for ${{ inputs.service-name }} in each environment"
       run: |
@@ -26,7 +34,7 @@ runs:
     - name: "Commit and push updates"
       run: |
         cd gitops
-        git commit environments/ -m "Update app-deploy.yaml for ${{ inputs.service-name }}"
+        git commit environments/ -m "${{ inputs.message }}"
         git push
         cd ..
       shell: bash
