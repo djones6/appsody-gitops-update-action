@@ -1,0 +1,35 @@
+name: 'Appsody Gitops Update'
+description: 'Update all instances of an app-deploy.yaml within a GitOps repo'
+inputs:
+  service-name:
+    description: 'Name of service being updated'
+    required: true
+  github-org:
+    description: 'Name of Github Organization containing GitOps repo'
+    required: true
+  gitops-repo-name:
+    description: 'Name of GitOps repo'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: "Clone GitOps repo"
+      run: git clone --depth 1 https://github.com/${{ inputs.github-org }}/${{ inputs.gitops-repo-name }}.git ./gitops
+      shell: bash
+    - name: "Replace app-deploy for ${{ inputs.service-name }} in each environment"
+      run: |
+        for environment in $(ls -1 --indicator-style=none gitops/environments)
+        do
+          cp ${{ inputs.service-name }}/app-deploy.yaml gitops/environments/${environment}/services/${{ inputs.service-name }}/base/config/app-deploy.yaml
+        done
+      shell: bash
+    - name: "Commit and push updates"
+      run: |
+        cd gitops
+        git commit environments/ -m "Update app-deploy.yaml for ${{ inputs.service-name }}"
+        git push
+        cd ..
+      shell: bash
+    - name: "Remove GitOps repo"
+      run: rm -rf gitops
+      shell: bash
