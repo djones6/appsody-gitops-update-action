@@ -36,7 +36,7 @@ runs:
         if [ -z "${{ inputs.message }}" ]; then
           export COMMIT_MSG="Update app-deploy.yaml for ${{ inputs.service-name }}"
         else
-          export COMMIT_MSG="${{ imputs.message }}"
+          export COMMIT_MSG="${{ inputs.message }}"
         fi
         git commit environments/ -m "${COMMIT_MSG}"
         git push
